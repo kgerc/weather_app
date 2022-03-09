@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'models/weather.dart';
 import 'package:http/http.dart' as http;
@@ -35,17 +37,16 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
   }
 
   Widget weatherContainer(Weather _weather) {
+    initializeDateFormatting('pl-PL');
     return Column(
       children: <Widget>[
         Text("${_weather.cityName}"),
-        Text("${_weather.temp}℃"),
+        Text("${_weather.temp?.toStringAsFixed(1)}℃"),
         Text("${_weather.pressure}"),
         Text("${_weather.description}"),
-        Text(
-            "${Duration(milliseconds: _weather.sunrise!).toString().substring(2, 6)}"),
-        Text(
-            "${Duration(milliseconds: _weather.sunset!).toString().substring(2, 6)}"),
-        Text("${new DateTime.now().hour}:${new DateTime.now().minute}"),
+        Text("${getClockInUtc(_weather.sunrise!)}"),
+        Text("${getClockInUtc(_weather.sunset!)}"),
+        Text("${DateFormat.jm("pl").format(DateTime.now())}"),
       ],
     );
   }
@@ -56,7 +57,7 @@ Future<Weather> getCurrentWeather() async {
   String city = "Gliwice,PL";
   String apiKey = "c5f5c7bce47d973286349e55618ffac1";
   var url =
-      "https://api.openweathermap.org/data/2.5/weather?q=$city&appid=$apiKey&units=metric";
+      "https://api.openweathermap.org/data/2.5/weather?q=$city&lang=pl&appid=$apiKey&units=metric";
 
   final response = await http.get(Uri.parse(url));
 
@@ -67,4 +68,10 @@ Future<Weather> getCurrentWeather() async {
   }
 
   return weather;
+}
+
+String getClockInUtc(int timeSinceEpochInSec) {
+  final time = DateTime.fromMillisecondsSinceEpoch(timeSinceEpochInSec * 1000,
+      isUtc: false);
+  return '${DateFormat.jm("pl").format(time)}';
 }
