@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:weather_app/currentWeather.dart';
 
+import 'models/location.dart';
+
 void main() {
   runApp(const MyApp());
 }
+
+List<Location> locations = [
+  new Location(city: "gliwice", country: "poland", lat: "50.298", lon: "18.677")
+];
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -16,7 +22,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: CurrentWeatherPage(),
+      home: CurrentWeatherPage(locations),
     );
   }
 }
