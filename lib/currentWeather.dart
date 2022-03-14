@@ -34,7 +34,7 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
         body: ListView(
           children: <Widget>[
             currentWeatherViews(this.locations, this.location, this.context),
-            //forecastViewHourly(this.locations),
+            forecastViewHourly(this.location, this.context),
           ],
         ));
   }
@@ -64,11 +64,25 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
     );
   }
 
-  // Widget forcastViewsHourly(Location location) {
-  // }
+  Widget forecastViewHourly(Location location, BuildContext context) {
+    Forecast _forecast;
 
-  // Widget forcastViewsDaily(Location location) {
-  // }
+    return FutureBuilder(
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          _forecast = snapshot.data as Forecast;
+          if (_forecast == null) {
+            return Text("Error getting weather");
+          } else {
+            return hourlyBoxes(_forecast);
+          }
+        } else {
+          return Center(child: CircularProgressIndicator());
+        }
+      },
+      future: getForecast(location),
+    );
+  }
 
   Widget weatherContainer(Weather _weather) {
     initializeDateFormatting('pl-PL');
@@ -252,11 +266,47 @@ Widget weatherDetailContainer(Weather _weather) {
 }
 
 Widget hourlyBoxes(Forecast _forecast) {
-  return Container();
-}
-
-Widget dailyBoxes(Forecast _forecast) {
-  return Container();
+  return Container(
+      margin: EdgeInsets.symmetric(vertical: 0.0),
+      height: 150.0,
+      child: ListView.builder(
+          padding: const EdgeInsets.only(left: 8, top: 0, bottom: 0, right: 8),
+          scrollDirection: Axis.horizontal,
+          itemCount: _forecast.hourly.length,
+          itemBuilder: (BuildContext context, int index) {
+            return Container(
+                padding: const EdgeInsets.only(
+                    left: 10, top: 15, bottom: 15, right: 10),
+                margin: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(18)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 2,
+                        blurRadius: 2,
+                        offset: Offset(0, 1), // changes position of shadow
+                      )
+                    ]),
+                child: Column(children: [
+                  Text(
+                    "${_forecast.hourly[index].temp?.toStringAsFixed(1)}°C",
+                    style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 17,
+                        color: Colors.black),
+                  ),
+                  getWeatherIcon(_forecast.hourly[index].icon!),
+                  Text(
+                    "${getClockInUtc(_forecast.hourly[index].dt!)}",
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                        color: Colors.grey),
+                  ),
+                ]));
+          }));
 }
 
 Widget cityBar(Location location) {
@@ -314,22 +364,24 @@ Future<Weather> getCurrentWeather(Location location) async {
   if (response.statusCode == 200) {
     weather = Weather.fromJson(jsonDecode(response.body));
   } else {
-    // TODO: throw error
+    throw new Exception("failed to retrieve current weather data");
   }
 
   return weather;
 }
 
 Future<Forecast> getForecast(Location location) async {
-  Forecast forecast = Forecast();
+  Forecast forecast = new Forecast(daily: [], hourly: []);
   String apiKey = "c5f5c7bce47d973286349e55618ffac1";
   String lat = location.lat!;
   String lon = location.lon!;
   var url =
-      "https://api.openweathermap.org/data/2.5/weather?lat=$lat&lon=$lon&lang=pl&appid=$apiKey&units=metric";
+      "https://api.openweathermap.org/data/2.5/onecall?lat=$lat&lon=$lon&appid=$apiKey&units=metric";
   final response = await http.get(Uri.parse(url));
   if (response.statusCode == 200) {
     forecast = Forecast.fromJson(jsonDecode(response.body));
+  } else {
+    throw new Exception("failed to retrieve forecast data");
   }
   return forecast;
 }
@@ -397,10 +449,3 @@ String getDateFromTimestamp(int timestamp) {
   var formatter = new DateFormat('E');
   return formatter.format(date);
 }
-// Text("${_weather.cityName}"),
-// Text("${_weather.temp?.toStringAsFixed(1)}℃"),
-// Text("${_weather.pressure}"),
-// Text("${_weather.description}"),
-// Text("${getClockInUtc(_weather.sunrise!)}"),
-// Text("${getClockInUtc(_weather.sunset!)}"),
-// Text("${DateFormat.jm("pl").format(DateTime.now())}"),

@@ -2,10 +2,10 @@ import 'package:weather_app/models/daily.dart';
 import 'package:weather_app/models/hourly.dart';
 
 class Forecast {
-  final List<Hourly>? hourly;
-  final List<Daily>? daily;
+  final List<Hourly> hourly;
+  final List<Daily> daily;
 
-  Forecast({this.hourly, this.daily});
+  Forecast({required this.hourly, required this.daily});
 
   factory Forecast.fromJson(Map<String, dynamic> json) {
     List<dynamic> hourlyData = json['hourly'];
