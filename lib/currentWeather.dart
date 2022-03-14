@@ -51,7 +51,7 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
             return Text("Error getting weather");
           } else {
             return Column(children: [
-              cityBar(location),
+              cityBar(location, context),
               weatherContainer(_weather),
               weatherDetailContainer(_weather),
             ]);
@@ -114,15 +114,48 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
               borderRadius: BorderRadius.all(Radius.circular(20))),
           child: Row(
             children: [
+              Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 10),
+                    child: Text(
+                      "${_weather.cityName}",
+                      style: TextStyle(
+                          fontWeight: FontWeight.normal,
+                          fontSize: 40,
+                          color: Colors.white),
+                    ),
+                  ),
+                  Container(
+                    child: Text(
+                      "${_weather.temp?.toStringAsFixed(1)}℃",
+                      style: TextStyle(
+                          fontWeight: FontWeight.normal,
+                          fontSize: 30,
+                          color: Colors.white),
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.all(0),
+                    child: Text(
+                      "Odczuwalna: ${_weather.feelsLike?.toStringAsFixed(1)}℃",
+                      style: TextStyle(
+                          fontWeight: FontWeight.normal,
+                          fontSize: 14,
+                          color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
               Expanded(
                   child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   // TODO: Dodaj ikone tutaj
                   getWeatherIcon(_weather.icon!),
                   Container(
-                    margin: const EdgeInsets.all(5.0),
+                    margin: const EdgeInsets.only(top: 2),
                     child: Text(
                       "${_weather.description?.capitalizeFirstOfEach}",
                       style: TextStyle(
@@ -137,35 +170,12 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
                       "W:${getClockInUtc(_weather.sunrise!)} Z:${getClockInUtc(_weather.sunset!)}",
                       style: TextStyle(
                           fontWeight: FontWeight.normal,
-                          fontSize: 13,
+                          fontSize: 14,
                           color: Colors.white),
                     ),
                   ),
                 ],
               )),
-              Column(
-                children: [
-                  Container(
-                    child: Text(
-                      "${_weather.temp?.toStringAsFixed(1)}℃",
-                      style: TextStyle(
-                          fontWeight: FontWeight.normal,
-                          fontSize: 50,
-                          color: Colors.white),
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.all(0),
-                    child: Text(
-                      "Odczuwalna: ${_weather.feelsLike?.toStringAsFixed(1)}℃",
-                      style: TextStyle(
-                          fontWeight: FontWeight.normal,
-                          fontSize: 13,
-                          color: Colors.white),
-                    ),
-                  ),
-                ],
-              )
             ],
           ),
         ),
@@ -309,47 +319,32 @@ Widget hourlyBoxes(Forecast _forecast) {
           }));
 }
 
-Widget cityBar(Location location) {
-  return Container(
-      padding: const EdgeInsets.only(left: 20, top: 15, bottom: 15, right: 20),
-      margin:
-          const EdgeInsets.only(top: 35, left: 15.0, bottom: 15.0, right: 15.0),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(60)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              spreadRadius: 5,
-              blurRadius: 7,
-              offset: Offset(0, 3),
-            )
-          ]),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text.rich(
-            TextSpan(
-              children: <TextSpan>[
-                TextSpan(
-                    text: '${location.city?.capitalizeFirstOfEach}, ',
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                TextSpan(
-                    text: '${location.country?.capitalizeFirstOfEach}',
-                    style:
-                        TextStyle(fontWeight: FontWeight.normal, fontSize: 16)),
-              ],
+Widget cityBar(Location location, BuildContext context) {
+  return AppBar(
+      backgroundColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+      title: Container(
+          width: double.infinity,
+          height: 40,
+          decoration: BoxDecoration(
+              color: Colors.white, borderRadius: BorderRadius.circular(5)),
+          child: Center(
+            child: TextField(
+              decoration: InputDecoration(
+                  prefixIcon: IconButton(
+                    icon: Icon(Icons.search),
+                    onPressed: () {
+                      getCurrentWeather(location);
+                    },
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.clear),
+                    onPressed: () {},
+                  ),
+                  hintText: 'Znajdź lokalizacje..',
+                  border: InputBorder.none),
             ),
-          ),
-          Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: Colors.black,
-            size: 24.0,
-            semanticLabel: 'Zmień lokalizacje',
-          ),
-        ],
-      ));
+          )));
 }
 
 Future<Weather> getCurrentWeather(Location location) async {
