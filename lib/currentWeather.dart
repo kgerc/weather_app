@@ -11,17 +11,20 @@ import 'models/weather.dart';
 import 'package:http/http.dart' as http;
 
 class CurrentWeatherPage extends StatefulWidget {
-  final List<Location> locations;
-  const CurrentWeatherPage(this.locations);
+  List<Location> locations;
+  CurrentWeatherPage(this.locations);
   @override
   _CurrentWeatherPageState createState() =>
       _CurrentWeatherPageState(this.locations);
 }
 
 class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
-  final List<Location> locations;
-  final Location location;
+  List<Location> locations;
+  Location location;
   late Weather _weather;
+  TextEditingController _searchQueryController = TextEditingController();
+  bool _isSearching = false;
+  String searchQuery = "gliwice";
 
   _CurrentWeatherPageState(List<Location> locations)
       : this.locations = locations,
@@ -31,16 +34,89 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.grey[100],
+        appBar: AppBar(
+            leading: _isSearching ? const BackButton() : Container(),
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            actions: _buildActions(),
+            title: Container(
+                width: double.infinity,
+                height: 40,
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(5)),
+                child: Center(
+                  child: TextField(
+                    controller: _searchQueryController,
+                    autofocus: false,
+                    decoration: InputDecoration(
+                      prefixIcon: IconButton(
+                        icon: Icon(Icons.search),
+                        onPressed: () {},
+                      ),
+                      hintText: "Znajdź lokalizacje...",
+                      border: InputBorder.none,
+                      hintStyle: TextStyle(color: Colors.black),
+                    ),
+                    style: TextStyle(color: Colors.black, fontSize: 16.0),
+                    onSubmitted: (query) => updateSearchQuery(query),
+                  ),
+                ))),
         body: ListView(
           children: <Widget>[
-            currentWeatherViews(this.locations, this.location, this.context),
+            currentWeatherViews(this.location, this.context),
             forecastViewHourly(this.location, this.context),
           ],
         ));
   }
 
-  Widget currentWeatherViews(
-      List<Location> locations, Location location, BuildContext context) {
+  List<Widget> _buildActions() {
+    if (_isSearching) {
+      return <Widget>[
+        IconButton(
+          icon: const Icon(Icons.clear),
+          onPressed: () {
+            if (_searchQueryController == null ||
+                _searchQueryController.text.isEmpty) {
+              Navigator.pop(context);
+              return;
+            }
+            _clearSearchQuery();
+          },
+        ),
+      ];
+    }
+    return <Widget>[
+      IconButton(
+        icon: const Icon(Icons.search),
+        onPressed: _startSearch,
+      ),
+    ];
+  }
+
+  void updateSearchQuery(String newQuery) {
+    setState(() {
+      locations = <Location>[Location(city: newQuery)];
+      location = locations[0];
+      print(locations[0].city);
+      //_clearSearchQuery();
+    });
+  }
+
+  void _clearSearchQuery() {
+    setState(() {
+      _searchQueryController.clear();
+      updateSearchQuery("");
+    });
+  }
+
+  void _startSearch() {
+    setState(() {
+      _isSearching = true;
+    });
+  }
+
+  Widget currentWeatherViews(Location location, BuildContext context) {
     Weather _weather;
 
     return FutureBuilder(
@@ -51,7 +127,7 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
             return Text("Error getting weather");
           } else {
             return Column(children: [
-              cityBar(location, context),
+              //cityBar(location, context),
               weatherContainer(_weather),
               weatherDetailContainer(_weather),
             ]);
@@ -60,7 +136,7 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
           return Center(child: CircularProgressIndicator());
         }
       },
-      future: getCurrentWeather(location),
+      future: getCurrentWeather(location.city!),
     );
   }
 
@@ -334,7 +410,7 @@ Widget cityBar(Location location, BuildContext context) {
                   prefixIcon: IconButton(
                     icon: Icon(Icons.search),
                     onPressed: () {
-                      getCurrentWeather(location);
+                      getCurrentWeather(location.city!);
                     },
                   ),
                   suffixIcon: IconButton(
@@ -347,9 +423,9 @@ Widget cityBar(Location location, BuildContext context) {
           )));
 }
 
-Future<Weather> getCurrentWeather(Location location) async {
+Future<Weather> getCurrentWeather(String locationName) async {
   Weather weather = Weather();
-  String city = location.city!;
+  String city = locationName;
   String apiKey = "c5f5c7bce47d973286349e55618ffac1";
   var url =
       "https://api.openweathermap.org/data/2.5/weather?q=$city&lang=pl&appid=$apiKey&units=metric";
@@ -368,8 +444,17 @@ Future<Weather> getCurrentWeather(Location location) async {
 Future<Forecast> getForecast(Location location) async {
   Forecast forecast = new Forecast(daily: [], hourly: []);
   String apiKey = "c5f5c7bce47d973286349e55618ffac1";
-  String lat = location.lat!;
-  String lon = location.lon!;
+  String city = location.city!;
+  var locationDetailsUrl =
+      "https://api.openweathermap.org/data/2.5/weather?q=$city&lang=pl&appid=$apiKey&units=metric";
+  final locationDetails = await http.get(Uri.parse(locationDetailsUrl));
+  print(locationDetails);
+  final locationDetaisDecoded = jsonDecode(locationDetails.body);
+  print(locationDetaisDecoded);
+  String lat = locationDetaisDecoded['coord']['lat'].toString();
+  String lon = locationDetaisDecoded['coord']['lon'].toString();
+  print(lat);
+  print(lon);
   var url =
       "https://api.openweathermap.org/data/2.5/onecall?lat=$lat&lon=$lon&appid=$apiKey&units=metric";
   final response = await http.get(Uri.parse(url));
@@ -431,16 +516,4 @@ class Clipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(Clipper oldClipper) => false;
-}
-
-String getTimeFromTimestamp(int timestamp) {
-  var date = new DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
-  var formatter = new DateFormat('h:mm a');
-  return formatter.format(date);
-}
-
-String getDateFromTimestamp(int timestamp) {
-  var date = new DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
-  var formatter = new DateFormat('E');
-  return formatter.format(date);
 }
