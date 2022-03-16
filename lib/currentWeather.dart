@@ -1,5 +1,9 @@
 import 'dart:convert';
 
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -25,6 +29,7 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
   TextEditingController _searchQueryController = TextEditingController();
   bool _isSearching = false;
   String searchQuery = "gliwice";
+  bool _isViewForOldPeople = false;
 
   _CurrentWeatherPageState(List<Location> locations)
       : this.locations = locations,
@@ -65,7 +70,58 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
         body: ListView(
           children: <Widget>[
             currentWeatherViews(this.location, this.context),
-            forecastViewHourly(this.location, this.context),
+            _isViewForOldPeople
+                ? SizedBox.shrink()
+                : forecastViewHourly(this.location, this.context),
+            StreamBuilder(
+                stream: Stream.periodic(const Duration(seconds: 1)),
+                builder: (context, snapshot) {
+                  return Container(
+                    padding: const EdgeInsets.only(
+                        left: 15, top: 25, bottom: 25, right: 15),
+                    margin: const EdgeInsets.only(
+                        left: 15, top: 15, bottom: 15, right: 15),
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            spreadRadius: 5,
+                            blurRadius: 7,
+                            offset: Offset(0, 3),
+                          )
+                        ]),
+                    child: Row(
+                      children: [
+                        Expanded(
+                            child: Wrap(
+                          direction: Axis.horizontal,
+                          spacing: 10.0,
+                          children: [
+                            Container(
+                                child: Text(
+                              "Data i obecny czas:",
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 18,
+                                  color: Colors.grey),
+                            )),
+                            Container(
+                                child: Text(
+                              DateFormat('dd.MM.yyyy HH:mm:ss')
+                                  .format(DateTime.now()),
+                              style:
+                                  TextStyle(color: Colors.black, fontSize: 18),
+                              textAlign: TextAlign.left,
+                            ))
+                          ],
+                        )),
+                      ],
+                    ),
+                  );
+                }),
           ],
         ));
   }
@@ -87,9 +143,25 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
       ];
     }
     return <Widget>[
-      IconButton(
-        icon: const Icon(Icons.search),
-        onPressed: _startSearch,
+      PopupMenuButton(
+        onSelected: (bool val) {
+          setState(() {
+            _isViewForOldPeople = !_isViewForOldPeople;
+          });
+        },
+        icon: Icon(
+          Icons.more_vert,
+          color: Colors.black,
+        ),
+        itemBuilder: (_) => [
+          PopupMenuItem(
+            textStyle: TextStyle(color: Colors.black, fontSize: 16.0),
+            child: _isViewForOldPeople
+                ? Text('Widok domyślny')
+                : Text('Widok dla osób starszych'),
+            value: false,
+          ),
+        ],
       ),
     ];
   }
@@ -228,7 +300,6 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  // TODO: Dodaj ikone tutaj
                   getWeatherIcon(_weather.icon!),
                   Container(
                     margin: const EdgeInsets.only(top: 2),
@@ -236,7 +307,7 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
                       "${_weather.description?.capitalizeFirstOfEach}",
                       style: TextStyle(
                           fontWeight: FontWeight.normal,
-                          fontSize: 16,
+                          fontSize: 14,
                           color: Colors.white),
                     ),
                   ),
@@ -448,13 +519,9 @@ Future<Forecast> getForecast(Location location) async {
   var locationDetailsUrl =
       "https://api.openweathermap.org/data/2.5/weather?q=$city&lang=pl&appid=$apiKey&units=metric";
   final locationDetails = await http.get(Uri.parse(locationDetailsUrl));
-  print(locationDetails);
   final locationDetaisDecoded = jsonDecode(locationDetails.body);
-  print(locationDetaisDecoded);
   String lat = locationDetaisDecoded['coord']['lat'].toString();
   String lon = locationDetaisDecoded['coord']['lon'].toString();
-  print(lat);
-  print(lon);
   var url =
       "https://api.openweathermap.org/data/2.5/onecall?lat=$lat&lon=$lon&appid=$apiKey&units=metric";
   final response = await http.get(Uri.parse(url));
