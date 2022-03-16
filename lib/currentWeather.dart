@@ -63,7 +63,9 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
                       border: InputBorder.none,
                       hintStyle: TextStyle(color: Colors.black),
                     ),
-                    style: TextStyle(color: Colors.black, fontSize: 16.0),
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: _isViewForOldPeople ? 20.0 : 16.0),
                     onSubmitted: (query) => updateSearchQuery(query),
                   ),
                 ))),
@@ -190,7 +192,6 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
 
   Widget currentWeatherViews(Location location, BuildContext context) {
     Weather _weather;
-
     return FutureBuilder(
       builder: (context, snapshot) {
         if (snapshot.hasData) {
@@ -200,8 +201,8 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
           } else {
             return Column(children: [
               //cityBar(location, context),
-              weatherContainer(_weather),
-              weatherDetailContainer(_weather),
+              weatherContainer(_weather, _isViewForOldPeople),
+              weatherDetailContainer(_weather, _isViewForOldPeople),
             ]);
           }
         } else {
@@ -232,7 +233,7 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
     );
   }
 
-  Widget weatherContainer(Weather _weather) {
+  Widget weatherContainer(Weather _weather, bool _isViewForOldPeople) {
     initializeDateFormatting('pl-PL');
     return Stack(
       children: [
@@ -270,7 +271,7 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
                       "${_weather.cityName}",
                       style: TextStyle(
                           fontWeight: FontWeight.normal,
-                          fontSize: 40,
+                          fontSize: _isViewForOldPeople ? 45 : 40,
                           color: Colors.white),
                     ),
                   ),
@@ -279,20 +280,22 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
                       "${_weather.temp?.toStringAsFixed(1)}℃",
                       style: TextStyle(
                           fontWeight: FontWeight.normal,
-                          fontSize: 30,
+                          fontSize: _isViewForOldPeople ? 35 : 30,
                           color: Colors.white),
                     ),
                   ),
-                  Container(
-                    margin: const EdgeInsets.all(0),
-                    child: Text(
-                      "Odczuwalna: ${_weather.feelsLike?.toStringAsFixed(1)}℃",
-                      style: TextStyle(
-                          fontWeight: FontWeight.normal,
-                          fontSize: 14,
-                          color: Colors.white),
-                    ),
-                  ),
+                  _isViewForOldPeople
+                      ? SizedBox.shrink()
+                      : Container(
+                          margin: const EdgeInsets.all(0),
+                          child: Text(
+                            "Odczuwalna: ${_weather.feelsLike?.toStringAsFixed(1)}℃",
+                            style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                fontSize: 14,
+                                color: Colors.white),
+                          ),
+                        ),
                 ],
               ),
               Expanded(
@@ -307,20 +310,22 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
                       "${_weather.description?.capitalizeFirstOfEach}",
                       style: TextStyle(
                           fontWeight: FontWeight.normal,
-                          fontSize: 14,
+                          fontSize: _isViewForOldPeople ? 18 : 14,
                           color: Colors.white),
                     ),
                   ),
-                  Container(
-                    margin: const EdgeInsets.all(5.0),
-                    child: Text(
-                      "W:${getClockInUtc(_weather.sunrise!)} Z:${getClockInUtc(_weather.sunset!)}",
-                      style: TextStyle(
-                          fontWeight: FontWeight.normal,
-                          fontSize: 14,
-                          color: Colors.white),
-                    ),
-                  ),
+                  _isViewForOldPeople
+                      ? SizedBox.shrink()
+                      : Container(
+                          margin: const EdgeInsets.all(5.0),
+                          child: Text(
+                            "W:${getClockInUtc(_weather.sunrise!)} Z:${getClockInUtc(_weather.sunset!)}",
+                            style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                fontSize: 14,
+                                color: Colors.white),
+                          ),
+                        ),
                 ],
               )),
             ],
@@ -331,7 +336,7 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
   }
 }
 
-Widget weatherDetailContainer(Weather _weather) {
+Widget weatherDetailContainer(Weather _weather, bool _isViewForOldPeople) {
   return Container(
     padding: const EdgeInsets.only(left: 15, top: 25, bottom: 25, right: 15),
     margin: const EdgeInsets.only(left: 15, top: 5, bottom: 15, right: 15),
@@ -357,7 +362,7 @@ Widget weatherDetailContainer(Weather _weather) {
               textAlign: TextAlign.left,
               style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  fontSize: 12,
+                  fontSize: _isViewForOldPeople ? 16 : 12,
                   color: Colors.grey),
             )),
             Container(
@@ -366,7 +371,7 @@ Widget weatherDetailContainer(Weather _weather) {
               textAlign: TextAlign.left,
               style: TextStyle(
                   fontWeight: FontWeight.w700,
-                  fontSize: 15,
+                  fontSize: _isViewForOldPeople ? 18 : 15,
                   color: Colors.black),
             ))
           ],
@@ -380,7 +385,7 @@ Widget weatherDetailContainer(Weather _weather) {
               textAlign: TextAlign.left,
               style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  fontSize: 12,
+                  fontSize: _isViewForOldPeople ? 16 : 12,
                   color: Colors.grey),
             )),
             Container(
@@ -389,7 +394,7 @@ Widget weatherDetailContainer(Weather _weather) {
               textAlign: TextAlign.left,
               style: TextStyle(
                   fontWeight: FontWeight.w700,
-                  fontSize: 15,
+                  fontSize: _isViewForOldPeople ? 18 : 15,
                   color: Colors.black),
             ))
           ],
@@ -403,7 +408,7 @@ Widget weatherDetailContainer(Weather _weather) {
               textAlign: TextAlign.left,
               style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  fontSize: 12,
+                  fontSize: _isViewForOldPeople ? 16 : 12,
                   color: Colors.grey),
             )),
             Container(
@@ -412,7 +417,7 @@ Widget weatherDetailContainer(Weather _weather) {
               textAlign: TextAlign.left,
               style: TextStyle(
                   fontWeight: FontWeight.w700,
-                  fontSize: 15,
+                  fontSize: _isViewForOldPeople ? 18 : 15,
                   color: Colors.black),
             ))
           ],
@@ -464,34 +469,6 @@ Widget hourlyBoxes(Forecast _forecast) {
                   ),
                 ]));
           }));
-}
-
-Widget cityBar(Location location, BuildContext context) {
-  return AppBar(
-      backgroundColor: Colors.transparent,
-      shadowColor: Colors.transparent,
-      title: Container(
-          width: double.infinity,
-          height: 40,
-          decoration: BoxDecoration(
-              color: Colors.white, borderRadius: BorderRadius.circular(5)),
-          child: Center(
-            child: TextField(
-              decoration: InputDecoration(
-                  prefixIcon: IconButton(
-                    icon: Icon(Icons.search),
-                    onPressed: () {
-                      getCurrentWeather(location.city!);
-                    },
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.clear),
-                    onPressed: () {},
-                  ),
-                  hintText: 'Znajdź lokalizacje..',
-                  border: InputBorder.none),
-            ),
-          )));
 }
 
 Future<Weather> getCurrentWeather(String locationName) async {
@@ -546,16 +523,6 @@ Image getWeatherIcon(String _icon) {
     path + _icon + imageExtension,
     width: 70,
     height: 70,
-  );
-}
-
-Image getWeatherIconSmall(String _icon) {
-  String path = 'assets/icons/';
-  String imageExtension = '.png';
-  return Image.asset(
-    path + _icon + imageExtension,
-    width: 40,
-    height: 40,
   );
 }
 
