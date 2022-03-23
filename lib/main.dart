@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:weather_app/currentWeather.dart';
+import 'package:weather_app/weather.dart';
 
 import 'models/location.dart';
 

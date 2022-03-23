@@ -1,11 +1,12 @@
+// ignore: file_names
+// ignore_for_file: file_names
+
 import 'dart:convert';
 
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:weather_app/models/forecast.dart';
 import 'package:weather_app/models/location.dart';
@@ -172,8 +173,6 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
     setState(() {
       locations = <Location>[Location(city: newQuery)];
       location = locations[0];
-      print(locations[0].city);
-      //_clearSearchQuery();
     });
   }
 
@@ -490,7 +489,7 @@ Future<Weather> getCurrentWeather(String locationName) async {
 }
 
 Future<Forecast> getForecast(Location location) async {
-  Forecast forecast = new Forecast(daily: [], hourly: []);
+  Forecast forecast = Forecast(daily: [], hourly: []);
   String apiKey = "c5f5c7bce47d973286349e55618ffac1";
   String city = location.city!;
   var locationDetailsUrl =
@@ -505,49 +504,7 @@ Future<Forecast> getForecast(Location location) async {
   if (response.statusCode == 200) {
     forecast = Forecast.fromJson(jsonDecode(response.body));
   } else {
-    throw new Exception("failed to retrieve forecast data");
+    throw Exception("failed to retrieve forecast data");
   }
   return forecast;
-}
-
-String getClockInUtc(int timeSinceEpochInSec) {
-  final time = DateTime.fromMillisecondsSinceEpoch(timeSinceEpochInSec * 1000,
-      isUtc: false);
-  return '${DateFormat.jm("pl").format(time)}';
-}
-
-Image getWeatherIcon(String _icon) {
-  String path = 'assets/icons/';
-  String imageExtension = '.png';
-  return Image.asset(
-    path + _icon + imageExtension,
-    width: 70,
-    height: 70,
-  );
-}
-
-class Clipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    Path path = Path();
-    path.moveTo(0, size.height - 20);
-
-    path.quadraticBezierTo((size.width / 6) * 1, (size.height / 2) + 15,
-        (size.width / 3) * 1, size.height - 30);
-    path.quadraticBezierTo((size.width / 2) * 1, (size.height + 0),
-        (size.width / 3) * 2, (size.height / 4) * 3);
-    path.quadraticBezierTo((size.width / 6) * 5, (size.height / 2) - 20,
-        size.width, size.height - 60);
-
-    path.lineTo(size.width, size.height - 60);
-    path.lineTo(size.width, size.height);
-    path.lineTo(0, size.height);
-
-    path.close();
-
-    return path;
-  }
-
-  @override
-  bool shouldReclip(Clipper oldClipper) => false;
 }
