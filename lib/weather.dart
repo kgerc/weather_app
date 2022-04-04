@@ -109,14 +109,15 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
                               style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 18,
-                                  color: Colors.grey),
+                                  color: Colors.black),
                             )),
                             Container(
                                 child: Text(
                               DateFormat('dd.MM.yyyy HH:mm:ss')
                                   .format(DateTime.now()),
-                              style:
-                                  TextStyle(color: Colors.black, fontSize: 18),
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: _isViewForOldPeople ? 20 : 18),
                               textAlign: TextAlign.left,
                             ))
                           ],
@@ -265,7 +266,7 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
               Column(
                 children: [
                   Container(
-                    margin: const EdgeInsets.only(top: 10),
+                    margin: const EdgeInsets.only(top: 15),
                     child: Text(
                       "${_weather.cityName}",
                       style: TextStyle(
@@ -304,9 +305,10 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
                 children: <Widget>[
                   getWeatherIcon(_weather.icon!),
                   Container(
-                    margin: const EdgeInsets.only(top: 2),
+                    margin: const EdgeInsets.only(top: 1),
                     child: Text(
                       "${_weather.description?.capitalizeFirstOfEach}",
+                      textAlign: TextAlign.right,
                       style: TextStyle(
                           fontWeight: FontWeight.normal,
                           fontSize: _isViewForOldPeople ? 18 : 14,
@@ -316,7 +318,8 @@ class _CurrentWeatherPageState extends State<CurrentWeatherPage> {
                   _isViewForOldPeople
                       ? SizedBox.shrink()
                       : Container(
-                          margin: const EdgeInsets.all(5.0),
+                          margin: const EdgeInsets.only(
+                              left: 5, top: 5, bottom: 22, right: 5),
                           child: Text(
                             "W:${getClockInUtc(_weather.sunrise!)} Z:${getClockInUtc(_weather.sunset!)}",
                             style: TextStyle(
@@ -440,7 +443,7 @@ Widget hourlyBoxes(Forecast _forecast) {
                     left: 10, top: 15, bottom: 15, right: 10),
                 margin: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Colors.indigoAccent[400],
                     borderRadius: BorderRadius.all(Radius.circular(18)),
                     boxShadow: [
                       BoxShadow(
@@ -456,7 +459,7 @@ Widget hourlyBoxes(Forecast _forecast) {
                     style: TextStyle(
                         fontWeight: FontWeight.w500,
                         fontSize: 17,
-                        color: Colors.black),
+                        color: Colors.white),
                   ),
                   getWeatherIcon(_forecast.hourly[index].icon!),
                   Text(
